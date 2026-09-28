@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { User, CreditCard, Building2, Loader2, WifiOff, Terminal, ChevronDown } from "lucide-react";
+import { User, CreditCard, Building2, Loader2, WifiOff, Terminal, ChevronDown, CheckCircle2 } from "lucide-react";
 
-// 1. Reglas de validación
+// Reglas de validación
 const formSchema = z.object({
   rut: z.string().min(8, "El RUT es obligatorio y debe ser válido"),
   nombre: z.string().min(2, "El nombre completo es requerido"),
@@ -19,11 +19,13 @@ export default function FormularioAdministrativo() {
   const [isClient, setIsClient] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Estado para la alerta de error y el acordeón TI
+  // Estados de control para la demostración
+  const [hasFailedOnce, setHasFailedOnce] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [errorContext, setErrorContext] = useState<{ title: string; message: string; stackTrace: string } | null>(null);
   const [isITOpen, setIsITOpen] = useState(false);
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: { rut: "", nombre: "", departamento: "" },
   });
@@ -46,12 +48,11 @@ export default function FormularioAdministrativo() {
   }, [setValue]);
 
   useEffect(() => {
-    if (isClient) {
+    if (isClient && !isSuccess) {
       localStorage.setItem("sne-rg-draft", JSON.stringify(formValues));
     }
-  }, [formValues, isClient]);
+  }, [formValues, isClient, isSuccess]);
 
-  // Función ejecutada en caso de errores de validación (Auto-Scroll)
   const onError = (formErrors: any) => {
     const firstErrorField = Object.keys(formErrors)[0];
     const element = document.getElementsByName(firstErrorField)[0];
@@ -65,26 +66,59 @@ export default function FormularioAdministrativo() {
     setIsSubmitting(true);
     setErrorContext(null);
     setIsITOpen(false);
+    setIsSuccess(false);
 
-    // Simulador de carga de red
+    // Simulador de carga
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    // Inyectamos el error con la doble vista
-    setIsSubmitting(false);
-    setErrorContext({
-      title: "Micro-corte de conexión detectado",
-      message: "No pudimos conectar con el servidor principal. Verifica tu conexión a internet e inténtalo nuevamente.",
-      stackTrace: `[ERROR] 504 Gateway Timeout\nTimestamp: ${new Date().toISOString()}\nEndpoint: /api/v1/solicitudes\nPayload_Hash: ${btoa(data.rut).substring(0, 8)}...\n---\nCaída en microservicio de base de datos. Se requiere revisión de logs de red.`
-    });
+    if (!hasFailedOnce) {
+      // 1. PRIMER INTENTO: Forzamos el fallo para demostrar el SNE-RG
+      setIsSubmitting(false);
+      setHasFailedOnce(true);
+      setErrorContext({
+        title: "Micro-corte de conexión detectado",
+        message: "No pudimos conectar con el servidor principal. Verifica tu conexión a internet e inténtalo nuevamente.",
+        stackTrace: `[ERROR] 504 Gateway Timeout\nTimestamp: ${new Date().toISOString()}\nEndpoint: /api/v1/solicitudes\nPayload_Hash: ${btoa(data.rut).substring(0, 8)}...\n---\nCaída en microservicio de base de datos. Se requiere revisión de logs de red.`
+      });
+    } else {
+      // 2. SEGUNDO INTENTO (Reintentar): Simulación de éxito
+      setIsSubmitting(false);
+      setIsSuccess(true);
+      setHasFailedOnce(false); // Reseteamos el ciclo
+      localStorage.removeItem("sne-rg-draft"); // Limpiamos el caché local
+      reset(); // Vaciamos el formulario
+    }
   };
 
   if (!isClient) return null;
 
+  // VISTA DE ÉXITO (Final Feliz)
+  if (isSuccess) {
+    return (
+      <div className="bg-green-50 border border-green-200 p-8 rounded-2xl text-center animate-in zoom-in-95 duration-500">
+        <div className="mx-auto bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+          <CheckCircle2 className="h-8 w-8 text-green-600" />
+        </div>
+        <h3 className="text-green-800 font-bold text-xl mb-2">¡Solicitud Procesada!</h3>
+        <p className="text-green-700 text-sm mb-6">
+          La conexión se ha restablecido y los datos de la solicitud fueron guardados correctamente en la base de datos central.
+        </p>
+        <button 
+          onClick={() => setIsSuccess(false)}
+          className="bg-green-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 transition-colors shadow-sm"
+        >
+          Ingresar nueva solicitud
+        </button>
+      </div>
+    );
+  }
+
+  // VISTA PRINCIPAL (Formulario + Error)
   return (
     <div className="space-y-6">
-      {/* Alerta SNE-RG V2 con Doble Audiencia */}
+      {/* Alerta SNE-RG V2 */}
       {errorContext && (
-        <div className="bg-amber-50 border border-amber-200 p-5 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="bg-amber-50 border border-amber-200 p-5 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-300 shadow-sm">
           <div className="flex gap-4">
             <div className="bg-amber-100 p-2 rounded-full h-fit shrink-0">
               <WifiOff className="h-6 w-6 text-amber-600" />
@@ -99,12 +133,13 @@ export default function FormularioAdministrativo() {
               
               <button 
                 onClick={handleSubmit(onSubmit, onError)}
-                className="mt-4 flex items-center gap-2 bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-amber-700 transition-colors shadow-sm"
+                disabled={isSubmitting}
+                className="mt-4 flex items-center gap-2 bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-amber-700 transition-colors shadow-sm disabled:opacity-50"
               >
+                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Reintentar envío (Tus datos están seguros)
               </button>
 
-              {/* Acordeón de Soporte TI */}
               <div className="mt-4 border-t border-amber-200/60 pt-3">
                 <button 
                   type="button"
