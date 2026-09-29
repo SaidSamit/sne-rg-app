@@ -81,18 +81,25 @@ export default function Dashboard() {
           <p className="text-[11px] text-slate-500 mt-3">Usuarios que reintentan sin abandonar</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl shadow-xs border border-slate-200/80">
+        <Link
+          href="/ahorro-ti"
+          className="bg-white p-5 rounded-2xl shadow-xs border border-slate-200/80 hover:border-amber-300 hover:shadow-md transition-all group block"
+        >
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs font-medium text-slate-500 mb-1">Ahorro Estimado Mensual</p>
+              <p className="text-xs font-medium text-slate-500 mb-1 group-hover:text-amber-600 transition-colors">
+                Ahorro Estimado Mensual
+              </p>
               <h3 className="text-2xl font-bold text-slate-800">$450.000</h3>
             </div>
-            <div className="bg-amber-100 p-2 rounded-xl text-amber-600">
+            <div className="bg-amber-100 p-2.5 rounded-xl text-amber-600 group-hover:scale-105 transition-transform">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-[11px] text-slate-500 mt-3">Reducción de hasta un 40% en Nivel 1</p>
-        </div>
+          <p className="text-[11px] text-amber-700 font-semibold mt-3 flex items-center gap-1">
+            Ver desglose por severidad TI →
+          </p>
+        </Link>
 
         <div className="bg-white p-5 rounded-2xl shadow-xs border border-slate-200/80">
           <div className="flex justify-between items-start">

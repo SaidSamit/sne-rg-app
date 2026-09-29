@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShieldCheck, LayoutDashboard, FileText, Users, Settings, Search, ChevronRight, Bell, Menu, X } from "lucide-react";
+import { ShieldCheck, LayoutDashboard, FileText, Users, Settings, Search, ChevronRight, Bell, Menu, X, TrendingDown } from "lucide-react";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -13,6 +13,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const getTitle = () => {
     if (pathname === '/nueva-solicitud') return 'Nueva Solicitud';
     if (pathname === '/directorio') return 'Directorio Corporativo';
+    if (pathname === '/ahorro-ti') return 'Ahorro TI & ROI';
     return 'Dashboard';
   };
 
@@ -54,6 +55,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           <Link onClick={() => setIsMobileMenuOpen(false)} href="/directorio" className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${pathname === '/directorio' ? 'text-white bg-blue-600/10 border border-blue-500/20' : 'hover:text-white hover:bg-slate-800'}`}>
             <Users className={`w-4 h-4 ${pathname === '/directorio' ? 'text-blue-500' : ''}`} /> 
             <span className="text-sm font-medium">Directorio</span>
+          </Link>
+          <Link onClick={() => setIsMobileMenuOpen(false)} href="/ahorro-ti" className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${pathname === '/ahorro-ti' ? 'text-white bg-blue-600/10 border border-blue-500/20' : 'hover:text-white hover:bg-slate-800'}`}>
+            <TrendingDown className={`w-4 h-4 ${pathname === '/ahorro-ti' ? 'text-emerald-400' : ''}`} /> 
+            <span className="text-sm font-medium">Ahorro TI & ROI</span>
           </Link>
         </nav>
 
