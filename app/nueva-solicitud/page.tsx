@@ -1,4 +1,4 @@
-import FormularioAdministrativo from "../FormularioAdministrativo";
+import FormularioAdministrativo from "@/components/FormularioAdministrativo";
 
 export default function NuevaSolicitud() {
   return (
