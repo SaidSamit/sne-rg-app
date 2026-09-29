@@ -367,9 +367,7 @@ Normativa de Referencia: ISO/IEC 25010 (Usabilidad y Tolerancia a Fallos)`;
               </div>
             </div>
 
-            <div className="p-3 bg-blue-950/60 border border-blue-800/40 rounded-xl text-[11px] text-blue-200">
-              💡 <strong>Justificación para el Pitch:</strong> La inversión en usabilidad y tolerancia a fallos se amortiza desde el primer mes operativo, eliminando la fricción de Camila Soto y reduciendo la carga de incidentes críticos en base de datos.
-            </div>
+            
           </div>
         </div>
       </div>
