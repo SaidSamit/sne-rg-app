@@ -174,11 +174,18 @@ export default function FormularioAdministrativo({ onSuccess }: FormularioAdmini
     procesarArchivo(file.name, tamanoMB);
   };
 
-  const handleAutoFillDemo = () => {
-    setValue("rut", "15.423.891-2", { shouldValidate: true, shouldDirty: true });
-    setValue("nombre", "Camila Soto González", { shouldValidate: true, shouldDirty: true });
-    setValue("departamento", "Recursos Humanos", { shouldValidate: true, shouldDirty: true });
-    procesarArchivo("Contrato_CamilaSoto.pdf", 2.1);
+  const handleAutoFillDemo = (tipo: "nuevo" | "duplicado" = "nuevo") => {
+    if (tipo === "nuevo") {
+      setValue("rut", "16.234.567-2", { shouldValidate: true, shouldDirty: true });
+      setValue("nombre", "Ignacio Valdés Morales", { shouldValidate: true, shouldDirty: true });
+      setValue("departamento", "Operaciones", { shouldValidate: true, shouldDirty: true });
+      procesarArchivo("Contrato_Laboral_2026.pdf", 2.1);
+    } else {
+      setValue("rut", "15.423.891-2", { shouldValidate: true, shouldDirty: true });
+      setValue("nombre", "Camila Soto González", { shouldValidate: true, shouldDirty: true });
+      setValue("departamento", "Recursos Humanos", { shouldValidate: true, shouldDirty: true });
+      procesarArchivo("Contrato_CamilaSoto.pdf", 2.1);
+    }
   };
 
   // Auto-scroll contextual directo al campo con conflicto (Slide 3 y 4)
@@ -405,15 +412,26 @@ export default function FormularioAdministrativo({ onSuccess }: FormularioAdmini
       <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-gradient-to-r from-blue-50/70 to-indigo-50/70 border border-blue-200/80 rounded-xl text-xs">
         <span className="text-slate-700 font-medium flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-          <span><strong>Modo Pitch / Demostración:</strong> Caso Camila Soto (RRHH)</span>
+          <span><strong>Atajos de Pitch:</strong> Simulación de laboratorio</span>
         </span>
-        <button
-          type="button"
-          onClick={handleAutoFillDemo}
-          className="px-2.5 py-1 bg-white hover:bg-blue-600 hover:text-white border border-blue-200 text-blue-700 font-semibold rounded-lg transition-all shadow-2xs"
-        >
-          Auto-rellenar datos de prueba
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => handleAutoFillDemo("nuevo")}
+            className="px-2.5 py-1 bg-white hover:bg-emerald-600 hover:text-white border border-slate-200 hover:border-emerald-600 text-emerald-700 font-semibold rounded-lg transition-all shadow-2xs"
+            title="Prueba corte 504 con auto-recuperación exitosa"
+          >
+            Caso Nuevo (Prueba 504)
+          </button>
+          <button
+            type="button"
+            onClick={() => handleAutoFillDemo("duplicado")}
+            className="px-2.5 py-1 bg-white hover:bg-rose-600 hover:text-white border border-slate-200 hover:border-rose-600 text-rose-700 font-semibold rounded-lg transition-all shadow-2xs"
+            title="Prueba conflicto de RUT ya existente en BD"
+          >
+            Caso Duplicado (Prueba 409)
+          </button>
+        </div>
       </div>
 
       {/* Formulario Principal */}
