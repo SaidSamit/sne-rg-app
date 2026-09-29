@@ -234,6 +234,7 @@ export default function FormularioAdministrativo({ onSuccess }: FormularioAdmini
       departamento: data.departamento,
       nombreArchivo: archivoAdjunto?.nombre,
       tamanoArchivoMB: archivoAdjunto?.tamanoMB,
+      estado: "activo",
     });
 
     storage.clearDraft();

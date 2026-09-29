@@ -1,8 +1,11 @@
+export type EstadoFuncionario = "activo" | "suspendido";
+
 export interface Funcionario {
   id: string;
   rut: string;
   nombre: string;
   departamento: string;
+  estado: EstadoFuncionario;
   nombreArchivo?: string;
   tamanoArchivoMB?: number;
   fechaRegistro: string;

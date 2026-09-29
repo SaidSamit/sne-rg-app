@@ -18,6 +18,8 @@ import { subscribeToDB, getDBSnapshot, getDBServerSnapshot } from "@/lib/storage
 export default function Dashboard() {
   const registros = useSyncExternalStore(subscribeToDB, getDBSnapshot, getDBServerSnapshot);
   const totalRegistros = registros.length;
+  const totalActivos = registros.filter((f) => f.estado === "activo").length;
+  const totalSuspendidos = registros.filter((f) => f.estado === "suspendido").length;
   const totalConPDF = registros.filter((f) => Boolean(f.nombreArchivo)).length;
 
   return (
@@ -102,7 +104,10 @@ export default function Dashboard() {
               <Database className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-[11px] text-slate-500 mt-3">{totalConPDF} expedientes con PDF validado</p>
+          <p className="text-[11px] text-slate-500 mt-3 font-medium">
+            <span className="text-emerald-600 font-semibold">{totalActivos} activos</span> •{" "}
+            <span className="text-amber-600 font-semibold">{totalSuspendidos} suspendidos</span>
+          </p>
         </div>
       </div>
 
@@ -173,7 +178,7 @@ export default function Dashboard() {
             </div>
             <div className="px-4 py-2.5 bg-slate-800/90 rounded-xl border border-slate-700/80 text-xs font-mono text-blue-300 flex items-center gap-2">
               <FileCheck className="w-3.5 h-3.5" />
-              Quota PDF: 5.0 MB
+              Expedientes PDF: {totalConPDF}
             </div>
           </div>
         </div>

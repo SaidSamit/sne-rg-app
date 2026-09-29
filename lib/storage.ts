@@ -10,6 +10,7 @@ export const SEED_DATA: Funcionario[] = [
     rut: "15.423.891-2",
     nombre: "Camila Soto González",
     departamento: "Recursos Humanos",
+    estado: "activo",
     nombreArchivo: "Contrato_CamilaSoto.pdf",
     tamanoArchivoMB: 2.1,
     fechaRegistro: "15/03/2026",
@@ -19,6 +20,7 @@ export const SEED_DATA: Funcionario[] = [
     rut: "18.912.443-K",
     nombre: "Rodrigo Morales Pinto",
     departamento: "Finanzas",
+    estado: "activo",
     nombreArchivo: "Certificado_Morales.pdf",
     tamanoArchivoMB: 1.4,
     fechaRegistro: "20/03/2026",
@@ -28,6 +30,7 @@ export const SEED_DATA: Funcionario[] = [
     rut: "12.876.543-7",
     nombre: "Lorena Valenzuela Ortiz",
     departamento: "Soporte TI",
+    estado: "suspendido",
     fechaRegistro: "22/03/2026",
   },
 ];
@@ -52,7 +55,11 @@ class StorageService {
         this.saveFuncionarios(SEED_DATA);
         return this.cache;
       }
-      this.cache = JSON.parse(raw) as Funcionario[];
+      const parsed = JSON.parse(raw) as Funcionario[];
+      this.cache = parsed.map((item) => ({
+        ...item,
+        estado: item.estado || "activo",
+      }));
       return this.cache;
     } catch {
       this.cache = [...SEED_DATA];
@@ -80,11 +87,12 @@ class StorageService {
   }
 
   public createFuncionario(
-    data: Omit<Funcionario, "id" | "fechaRegistro">
+    data: Omit<Funcionario, "id" | "fechaRegistro" | "estado"> & { estado?: "activo" | "suspendido" }
   ): Funcionario {
     const list = [...this.getFuncionarios()];
     const nuevo: Funcionario = {
       ...data,
+      estado: data.estado || "activo",
       id: Date.now().toString(),
       fechaRegistro: new Date().toLocaleDateString("es-CL"),
     };
@@ -104,6 +112,23 @@ class StorageService {
     const actualizado: Funcionario = {
       ...list[index],
       ...cambios,
+      fechaActualizacion: new Date().toLocaleDateString("es-CL"),
+    };
+    list[index] = actualizado;
+    this.saveFuncionarios(list);
+    return actualizado;
+  }
+
+  public toggleEstadoFuncionario(id: string): Funcionario | null {
+    const list = [...this.getFuncionarios()];
+    const index = list.findIndex((f) => f.id === id);
+    if (index === -1) return null;
+
+    const actual = list[index];
+    const nuevoEstado = actual.estado === "suspendido" ? "activo" : "suspendido";
+    const actualizado: Funcionario = {
+      ...actual,
+      estado: nuevoEstado,
       fechaActualizacion: new Date().toLocaleDateString("es-CL"),
     };
     list[index] = actualizado;
