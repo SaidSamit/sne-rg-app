@@ -7,8 +7,9 @@ import { ShieldCheck, LayoutDashboard, FileText, Users, Settings, Search, Chevro
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  // Estado para controlar si el menú móvil está abierto o cerrado
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(3);
 
   const getTitle = () => {
     if (pathname === '/nueva-solicitud') return 'Nueva Solicitud';
@@ -97,13 +98,66 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
           {/* Lado Derecho (Perfil) */}
           <div className="flex items-center gap-4 sm:gap-5">
-            <div className="hidden md:flex items-center gap-2 text-slate-400 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full">
-              <Search className="w-4 h-4" /> <span className="text-xs">Buscar...</span>
+            <Link
+              href="/directorio"
+              className="hidden md:flex items-center gap-2 text-slate-400 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full transition-colors cursor-pointer"
+            >
+              <Search className="w-4 h-4" /> <span className="text-xs">Buscar funcionario en directorio...</span>
+            </Link>
+
+            {/* Campana de Notificaciones Interactiva SNE-RG */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsNotificationsOpen(!isNotificationsOpen);
+                  if (!isNotificationsOpen) setUnreadNotifications(0);
+                }}
+                className="relative text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg"
+                title="Notificaciones de Tolerancia a Fallos SNE-RG"
+                aria-label="Abrir notificaciones"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadNotifications > 0 && (
+                  <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+                )}
+              </button>
+
+              {isNotificationsOpen && (
+                <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 p-4 z-50 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-3">
+                    <span className="text-xs font-bold text-slate-800">Alertas de Intranet SNE-RG</span>
+                    <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">
+                      En Línea
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 text-xs">
+                    <div className="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors">
+                      <p className="font-semibold text-slate-800">Protección de Borrador Activa</p>
+                      <p className="text-slate-500 text-[11px] mt-0.5">Tus formularios están respaldados en LocalStorage en vivo.</p>
+                    </div>
+                    <div className="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors">
+                      <p className="font-semibold text-slate-800">142 Tickets Evitados</p>
+                      <p className="text-slate-500 text-[11px] mt-0.5">La mesa de ayuda opera con 40% menos incidentes.</p>
+                    </div>
+                    <div className="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors">
+                      <p className="font-semibold text-slate-800">Cuota de Archivos 5.0 MB</p>
+                      <p className="text-slate-500 text-[11px] mt-0.5">Filtro de optimización de PDFs enlazado a la intranet.</p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsNotificationsOpen(false)}
+                    className="w-full mt-3 text-center text-[11px] font-semibold text-blue-600 hover:text-blue-700 py-1"
+                  >
+                    Cerrar notificaciones
+                  </button>
+                </div>
+              )}
             </div>
-            <button className="relative text-slate-400 hover:text-slate-600 transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-            </button>
+
             <div className="hidden sm:block w-px h-6 bg-slate-200"></div>
             <div className="flex items-center gap-3">
               <div className="text-right hidden sm:block">

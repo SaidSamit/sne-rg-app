@@ -15,6 +15,7 @@ import {
   UserX,
   UserCheck,
   ShieldAlert,
+  Download,
 } from "lucide-react";
 import { Funcionario, EstadoFuncionario } from "@/types/funcionario";
 import { storage, subscribeToDB, getDBSnapshot, getDBServerSnapshot } from "@/lib/storage";
@@ -104,6 +105,27 @@ export default function Directorio() {
     setUltimoEliminado(null);
   };
 
+  // Exportación a CSV para Recursos Humanos
+  const handleExportCSV = () => {
+    const headers = ["RUT", "Nombre Completo", "Departamento", "Estado", "Respaldo PDF", "Fecha Registro"];
+    const rows = registros.map((r) => [
+      `"${r.rut}"`,
+      `"${r.nombre}"`,
+      `"${r.departamento}"`,
+      `"${r.estado}"`,
+      `"${r.nombreArchivo || "Sin adjunto"}"`,
+      `"${r.fechaRegistro}"`,
+    ]);
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Directorio_Funcionarios_SNE-RG_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Filtrado reactivo de funcionarios
   const registrosFiltrados = useMemo(() => {
     return registros.filter((reg) => {
@@ -142,13 +164,24 @@ export default function Directorio() {
           </p>
         </div>
 
-        <Link
-          href="/nueva-solicitud"
-          className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm shadow-blue-200 shrink-0"
-        >
-          <PlusCircle className="w-4 h-4" />
-          Nueva Solicitud
-        </Link>
+        <div className="flex items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={handleExportCSV}
+            className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors border border-slate-200 shadow-2xs"
+            title="Descargar base de funcionarios en archivo CSV para RRHH"
+          >
+            <Download className="w-4 h-4 text-slate-500" />
+            Exportar CSV
+          </button>
+          <Link
+            href="/nueva-solicitud"
+            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm shadow-blue-200"
+          >
+            <PlusCircle className="w-4 h-4" />
+            Nueva Solicitud
+          </Link>
+        </div>
       </div>
 
       {/* Barra de Filtros y Búsqueda */}

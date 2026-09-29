@@ -16,6 +16,7 @@ import {
   UploadCloud,
   FileCheck,
   XCircle,
+  Sparkles,
 } from "lucide-react";
 import { funcionarioSchema, FuncionarioSchemaType, LIMITE_ARCHIVO_MB } from "@/lib/validations";
 import { formatearRut } from "@/lib/rut";
@@ -42,6 +43,7 @@ export default function FormularioAdministrativo({ onSuccess }: FormularioAdmini
   const [errorArchivo, setErrorArchivo] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isClearingRef = useRef(false);
 
   const {
     register,
@@ -81,17 +83,21 @@ export default function FormularioAdministrativo({ onSuccess }: FormularioAdmini
   // Persistencia reactiva del borrador en LocalStorage usando suscripción (SNE-RG)
   useEffect(() => {
     const subscription = watch((value) => {
-      if (!isClient || isSuccess) return;
+      if (!isClient || isSuccess || isClearingRef.current) return;
 
-      const rutVal = value.rut || "";
-      const nombreVal = value.nombre || "";
-      const deptoVal = value.departamento || "";
+      const rutVal = (value.rut || "").trim();
+      const nombreVal = (value.nombre || "").trim();
+      const deptoVal = (value.departamento || "").trim();
+      const archivoVal =
+        value.archivo && value.archivo.nombre && typeof value.archivo.tamanoMB === "number"
+          ? { nombre: value.archivo.nombre, tamanoMB: value.archivo.tamanoMB }
+          : null;
 
       const tieneContenido = Boolean(
         rutVal.length > 0 ||
         nombreVal.length > 0 ||
         deptoVal.length > 0 ||
-        archivoAdjunto
+        archivoVal
       );
 
       if (tieneContenido) {
@@ -99,7 +105,7 @@ export default function FormularioAdministrativo({ onSuccess }: FormularioAdmini
           rut: rutVal,
           nombre: nombreVal,
           departamento: deptoVal,
-          archivo: archivoAdjunto,
+          archivo: archivoVal,
         });
         setDraftTimestamp(storage.getDraftTimestamp());
         setHasDraftData(true);
@@ -107,10 +113,19 @@ export default function FormularioAdministrativo({ onSuccess }: FormularioAdmini
     });
 
     return () => subscription.unsubscribe();
-  }, [watch, isClient, isSuccess, archivoAdjunto]);
+  }, [watch, isClient, isSuccess]);
 
   // Limpiar borrador manualmente
   const handleClearDraft = () => {
+    isClearingRef.current = true;
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    setArchivoAdjunto(null);
+    setErrorArchivo(null);
+    setErrorContext(null);
+    setHasDraftData(false);
+    setDraftTimestamp(null);
     storage.clearDraft();
     reset({
       rut: "",
@@ -118,10 +133,9 @@ export default function FormularioAdministrativo({ onSuccess }: FormularioAdmini
       departamento: "",
       archivo: null,
     });
-    setArchivoAdjunto(null);
-    setErrorArchivo(null);
-    setHasDraftData(false);
-    setErrorContext(null);
+    setTimeout(() => {
+      isClearingRef.current = false;
+    }, 150);
   };
 
   // Manejo de carga de archivos (Test 2 de la diapositiva: detección de 12MB vs 5MB máximo)
@@ -158,6 +172,13 @@ export default function FormularioAdministrativo({ onSuccess }: FormularioAdmini
 
     const tamanoMB = Number((file.size / (1024 * 1024)).toFixed(2));
     procesarArchivo(file.name, tamanoMB);
+  };
+
+  const handleAutoFillDemo = () => {
+    setValue("rut", "15.423.891-2", { shouldValidate: true, shouldDirty: true });
+    setValue("nombre", "Camila Soto González", { shouldValidate: true, shouldDirty: true });
+    setValue("departamento", "Recursos Humanos", { shouldValidate: true, shouldDirty: true });
+    procesarArchivo("Contrato_CamilaSoto.pdf", 2.1);
   };
 
   // Auto-scroll contextual directo al campo con conflicto (Slide 3 y 4)
@@ -237,13 +258,22 @@ export default function FormularioAdministrativo({ onSuccess }: FormularioAdmini
       estado: "activo",
     });
 
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
     storage.clearDraft();
     setIsSubmitting(false);
     setIsSuccess(true);
     setHasFailedOnce(false);
     setArchivoAdjunto(null);
     setHasDraftData(false);
-    reset();
+    setDraftTimestamp(null);
+    reset({
+      rut: "",
+      nombre: "",
+      departamento: "",
+      archivo: null,
+    });
 
     if (onSuccess) onSuccess();
   };
@@ -370,6 +400,21 @@ export default function FormularioAdministrativo({ onSuccess }: FormularioAdmini
           </div>
         </div>
       )}
+
+      {/* Barra de Demostración Rápida para el Pitch */}
+      <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-gradient-to-r from-blue-50/70 to-indigo-50/70 border border-blue-200/80 rounded-xl text-xs">
+        <span className="text-slate-700 font-medium flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+          <span><strong>Modo Pitch / Demostración:</strong> Caso Camila Soto (RRHH)</span>
+        </span>
+        <button
+          type="button"
+          onClick={handleAutoFillDemo}
+          className="px-2.5 py-1 bg-white hover:bg-blue-600 hover:text-white border border-blue-200 text-blue-700 font-semibold rounded-lg transition-all shadow-2xs"
+        >
+          Auto-rellenar datos de prueba
+        </button>
+      </div>
 
       {/* Formulario Principal */}
       <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-5" noValidate>
@@ -508,8 +553,11 @@ export default function FormularioAdministrativo({ onSuccess }: FormularioAdmini
               <button
                 type="button"
                 onClick={() => {
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = "";
+                  }
                   setArchivoAdjunto(null);
-                  setValue("archivo", null);
+                  setValue("archivo", null, { shouldValidate: true, shouldDirty: true });
                 }}
                 className="text-slate-400 hover:text-rose-500 p-1 rounded transition-colors"
                 title="Quitar archivo"
